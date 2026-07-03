@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>Image Editor</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#a78bfa">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)">
+    <link rel="preconnect" href="[fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+    <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap)" rel="stylesheet">
+    <style>
+      :root {
+	  --bg-0: #0a0a0f;
+	  --bg-1: #12121a;
+	  --panel: rgba(26, 26, 37, 0.7);
+	  --panel-border: rgba(255, 255, 255, 0.06);
+	  --text: #e8e8f0;
+	  --text-dim: #8a8aa0;
+	  --text-faint: #5a5a70;
+	  --accent: #a78bfa;
+	  --accent-2: #f472b6;
+	  --accent-glow: rgba(167, 139, 250, 0.4);
+	  --danger: #f87171;
+      }
+      * { box-sizing: border-box; }
+      body {
+	  margin: 0;
+	  min-height: 100vh;
+	  padding: 32px 24px;
+	  font-family: "Inter", system-ui, sans-serif;
+	  color: var(--text);
+	  background: var(--bg-0);
+	  background-image:
+              radial-gradient(circle at 20% 0%, rgba(167, 139, 250, 0.15), transparent 50%),
+              radial-gradient(circle at 80% 100%, rgba(244, 114, 182, 0.12), transparent 50%);
+	  background-attachment: fixed;
+      }
+      .app { max-width: 1280px; margin: 0 auto; }
+      .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+      h1 {
+	  margin: 0;
+	  font-family: "Space Grotesk", sans-serif;
+	  font-size: 32px;
+	  font-weight: 700;
+	  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+	  -webkit-background-clip: text;
+	  background-clip: text;
+	  -webkit-text-fill-color: transparent;
+      }
+      .badge {
+	  font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+	  color: var(--text-dim); padding: 6px 12px;
+	  background: var(--panel); border: 1px solid var(--panel-border); border-radius: 999px;
+	  backdrop-filter: blur(20px);
+      }
+      .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+      @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+      .panel {
+	  background: var(--panel); border: 1px solid var(--panel-border);
+	  border-radius: 20px; padding: 20px;
+	  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+	  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+      .sidebar { max-height: calc(100vh - 100px); overflow-y: auto; }
+      .sidebar::-webkit-scrollbar { width: 6px; }
+      .sidebar::-webkit-scrollbar-thumb { background: var(--text-faint); border-radius: 3px; }
+      .group { margin-bottom: 22px; }
+      .group:last-child { margin-bottom: 0; }
+      .group h2 {
+	  margin: 0 0 12px; font-size: 11px; font-weight: 600;
+	  text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-faint);
+	  display: flex; align-items: center; gap: 8px;
+      }
+      .group h2::before {
+	  content: ""; width: 4px; height: 4px; border-radius: 50%;
+	  background: var(--accent); box-shadow: 0 0 8px var(--accent-glow);
+      }
+      label { display: block; font-size: 12px; font-weight: 500; margin: 14px 0 8px; color: var(--text-dim); }
+      .value { float: right; font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
+      input[type="range"] {
+	  -webkit-appearance: none; appearance: none;
+	  width: 100%; height: 4px;
+	  background: rgba(255, 255, 255, 0.08); border-radius: 999px; outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+	  -webkit-appearance: none; appearance: none;
+	  width: 16px; height: 16px; border-radius: 50%;
+	  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+	  cursor: pointer; border: 2px solid var(--bg-1);
+	  box-shadow: 0 0 12px var(--accent-glow);
+      }
+      input[type="file"] { display: none; }
+      button, .file-btn {
+	  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+	  font: inherit; font-size: 13px; font-weight: 500;
+	  padding: 10px 14px; border: 1px solid var(--panel-border); border-radius: 10px;
+	  background: rgba(255, 255, 255, 0.04); color: var(--text);
+	  cursor: pointer; text-align: center; transition: all 0.2s ease;
+      }
+      button:hover, .file-btn:hover {
+	  background: rgba(255, 255, 255, 0.08);
+	  border-color: rgba(255, 255, 255, 0.12);
+	  transform: translateY(-1px);
+      }
+      button.active {
+	  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+	  color: white; border-color: transparent;
+	  box-shadow: 0 0 16px var(--accent-glow);
+      }
+      .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .btn-row.three { grid-template-columns: 1fr 1fr 1fr; }
+      .full { width: 100%; }
+      .primary {
+	  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+	  color: white; border: none; font-weight: 600;
+	  box-shadow: 0 4px 20px var(--accent-glow);
+      }
+      .canvas-wrap {
+	  background: var(--panel); border: 1px solid var(--panel-border);
+	  border-radius: 20px; padding: 24px; min-height: 540px;
+	  display: flex; align-items: center; justify-content: center;
+	  overflow: auto; backdrop-filter: blur(24px);
+      }
+      .stage { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+      canvas {
+	  display: block; max-width: 100%; max-height: 72vh;
+	  background: repeating-conic-gradient(rgba(255,255,255,0.04) 0% 25%, rgba(255,255,255,0.02) 0% 50%) 50% / 24px 24px;
+	  border-radius: 12px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+      }
+      .stage[data-tool="crop"] canvas, .stage[data-tool="mosaic"] canvas { cursor: crosshair; }
+      .empty { text-align: center; padding: 60px 24px; color: var(--text-faint); }
+      .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+      .empty-title { font-size: 18px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; }
+      .empty-hint { font-size: 13px; }
+      input[type="text"], select {
+	  font: inherit; font-size: 13px; padding: 10px 12px;
+	  border: 1px solid var(--panel-border); border-radius: 10px;
+	  background: rgba(255, 255, 255, 0.04); color: var(--text);
+	  width: 100%; outline: none;
+      }
+      input[type="text"]:focus, select:focus { border-color: var(--accent); }
+      input[type="color"] {
+	  width: 44px; height: 40px; padding: 2px;
+	  border: 1px solid var(--panel-border); border-radius: 10px;
+	  background: rgba(255, 255, 255, 0.04); cursor: pointer;
+      }
+      .inline { display: flex; gap: 8px; align-items: center; }
+      .inline select { flex: 1; }
+      .sticker-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; }
+      .sticker-btn {
+	  aspect-ratio: 1; padding: 0; font-size: 22px; line-height: 1;
+	  background: rgba(255, 255, 255, 0.04);
+	  border: 1px solid var(--panel-border); border-radius: 10px; cursor: pointer;
+      }
+      .sticker-btn:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.1); }
+      .toast {
+	  position: fixed; bottom: 24px; left: 50%;
+	  transform: translateX(-50%) translateY(100px);
+	  padding: 12px 20px;
+	  background: rgba(26, 26, 37, 0.95);
+	  border: 1px solid var(--panel-border); border-radius: 12px;
+	  font-size: 13px; font-weight: 500;
+	  backdrop-filter: blur(20px);
+	  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+	  opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100;
+      }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      .overlay { position: absolute; inset: 0; pointer-events: none; }
+      .crop-rect {
+	  position: absolute;
+	  border: 2px dashed var(--accent);
+	  background: rgba(167, 139, 250, 0.12);
+	  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+      }
+      .sticker-layer { position: absolute; inset: 0; pointer-events: none; }
+      .sticker {
+	  position: absolute;
+	  transform: translate(-50%, -50%);
+	  cursor: grab; user-select: none; pointer-events: auto;
+	  line-height: 1;
+	  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+      }
+      .sticker:active { cursor: grabbing; }
+      .sticker.selected { outline: 2px dashed var(--accent); outline-offset: 6px; border-radius: 6px; }
+      .sticker-handle {
+	  position: absolute; width: 20px; height: 20px;
+	  border: 2px solid white; border-radius: 50%;
+	  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); pointer-events: auto;
+      }
+      .sticker-handle.resize { right: -10px; bottom: -10px; background: var(--accent); cursor: nwse-resize; }
+      .sticker-handle.delete {
+	  right: -10px; top: -10px; background: var(--danger); cursor: pointer;
+	  display: flex; align-items: center; justify-content: center;
+	  color: white; font-size: 12px; font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+	<h1>Image Editor</h1>
+	<span class="badge">Local · No upload</span>
+      </header>
+      <div class="layout">
+	<aside class="panel sidebar">
+          <div class="group">
+            <h2>ファイル</h2>
+            <label for="fileInput" class="file-btn primary full">画像を読み込む</label>
+            <input id="fileInput" type="file" accept="image/*">
+          </div>
+          <div class="group">
+            <h2>ツール</h2>
+            <div class="btn-row three">
+              <button id="toolNone" class="active">選択</button>
+              <button id="toolCrop">トリミング</button>
+              <button id="toolMosaic">モザイク</button>
+            </div>
+          </div>
+          <div class="group" id="cropPanel" style="display:none;">
+            <h2>トリミング</h2>
+            <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px;">画像をドラッグして範囲を選択</p>
+            <div class="btn-row">
+              <button id="cropApply" class="primary">適用</button>
+              <button id="cropCancel">キャンセル</button>
+            </div>
+          </div>
+          <div class="group" id="mosaicPanel" style="display:none;">
+            <h2>モザイク</h2>
+            <label>強度 <span class="value" id="mosaicVal">12px</span></label>
+            <input id="mosaicSize" type="range" min="4" max="40" value="12">
+            <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0;">画像上をドラッグでモザイク適用</p>
+          </div>
+          <div class="group">
+            <h2>調整</h2>
+            <label>明るさ <span class="value" id="brightnessVal">100%</span></label>
+            <input id="brightness" type="range" min="0" max="200" value="100">
+            <label>コントラスト <span class="value" id="contrastVal">100%</span></label>
+            <input id="contrast" type="range" min="0" max="200" value="100">
+            <label>彩度 <span class="value" id="saturateVal">100%</span></label>
+            <input id="saturate" type="range" min="0" max="200" value="100">
+            <label>ぼかし <span class="value" id="blurVal">0px</span></label>
+            <input id="blur" type="range" min="0" max="20" value="0">
+          </div>
+          <div class="group">
+            <h2>フィルター</h2>
+            <select id="filterPreset">
+              <option value="none">なし</option>
+              <option value="grayscale">モノクロ</option>
+              <option value="sepia">セピア</option>
+              <option value="invert">反転</option>
+              <option value="vintage">ビンテージ</option>
+              <option value="cool">クール</option>
+              <option value="warm">ウォーム</option>
+            </select>
+          </div>
+          <div class="group">
+            <h2>変形</h2>
+            <div class="btn-row">
+              <button id="rotateLeft">↺ 左90°</button>
+              <button id="rotateRight">↻ 右90°</button>
+              <button id="flipH">⇆ 左右</button>
+              <button id="flipV">⇅ 上下</button>
+            </div>
+          </div>
+          <div class="group">
+            <h2>ステッカー</h2>
+            <div class="sticker-grid">
+              <button class="sticker-btn" data-emoji="😀">😀</button>
+              <button class="sticker-btn" data-emoji="😎">😎</button>
+              <button class="sticker-btn" data-emoji="🥰">🥰</button>
+              <button class="sticker-btn" data-emoji="🔥">🔥</button>
+              <button class="sticker-btn" data-emoji="✨">✨</button>
+              <button class="sticker-btn" data-emoji="⭐">⭐</button>
+              <button class="sticker-btn" data-emoji="❤️">❤️</button>
+              <button class="sticker-btn" data-emoji="💯">💯</button>
+              <button class="sticker-btn" data-emoji="🎉">🎉</button>
+              <button class="sticker-btn" data-emoji="👍">👍</button>
+              <button class="sticker-btn" data-emoji="🌸">🌸</button>
+              <button class="sticker-btn" data-emoji="🍣">🍣</button>
+            </div>
+          </div>
+          <div class="group">
+            <h2>テキスト追加</h2>
+            <input id="textInput" type="text" placeholder="文字を入力">
+            <div class="inline" style="margin-top:8px;">
+              <input id="textColor" type="color" value="#ffffff">
+              <select id="textSize">
+		<option value="24">24px</option>
+		<option value="36" selected>36px</option>
+		<option value="48">48px</option>
+		<option value="72">72px</option>
+		<option value="120">120px</option>
+              </select>
+            </div>
+            <button id="addText" class="full" style="margin-top:8px;">テキスト追加</button>
+          </div>
+          <div class="group">
+            <h2>出力</h2>
+            <div class="btn-row">
+              <button id="reset">リセット</button>
+              <button id="download" class="primary">保存</button>
+            </div>
+          </div>
+	</aside>
+	<section class="canvas-wrap">
+          <div class="empty" id="empty">
+            <div class="empty-icon">🖼</div>
+            <div class="empty-title">画像が選択されていません</div>
+            <div class="empty-hint">左のパネルから画像を読み込んで開始</div>
+          </div>
+          <div class="stage" id="stage" data-tool="none" style="display:none;">
+            <canvas id="canvas"></canvas>
+            <div class="overlay" id="overlay"></div>
+            <div class="sticker-layer" id="stickerLayer"></div>
+          </div>
+	</section>
+      </div>
+    </main>
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const empty = document.getElementById("empty");
+      const stage = document.getElementById("stage");
+      const overlay = document.getElementById("overlay");
+      const stickerLayer = document.getElementById("stickerLayer");
+      const fileInput = document.getElementById("fileInput");
+      const toast = document.getElementById("toast");
+
+      const sliders = {
+	  brightness: document.getElementById("brightness"),
+	  contrast: document.getElementById("contrast"),
+	  saturate: document.getElementById("saturate"),
+	  blur: document.getElementById("blur"),
+      };
+      const valueLabels = {
+	  brightness: document.getElementById("brightnessVal"),
+	  contrast: document.getElementById("contrastVal"),
+	  saturate: document.getElementById("saturateVal"),
+	  blur: document.getElementById("blurVal"),
+      };
+      const filterPreset = document.getElementById("filterPreset");
+      const mosaicSize = document.getElementById("mosaicSize");
+      const mosaicVal = document.getElementById("mosaicVal");
+
+      let baseCanvas = document.createElement("canvas");
+      let baseCtx = baseCanvas.getContext("2d");
+
+      const state = {
+	  image: null,
+	  rotation: 0,
+	  flipH: false,
+	  flipV: false,
+	  texts: [],
+	  stickers: [],
+	  tool: "none",
+	  cropRect: null,
+	  selectedSticker: null,
+      };
+
+      let toastTimer = null;
+      const showToast = (msg) => {
+	  toast.textContent = msg;
+	  toast.classList.add("show");
+	  clearTimeout(toastTimer);
+	  toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
+      };
+
+      const buildFilter = () => {
+	  const presets = {
+              none: "", grayscale: "grayscale(100%)", sepia: "sepia(80%)", invert: "invert(100%)",
+              vintage: "sepia(40%) contrast(110%) brightness(105%)",
+              cool: "hue-rotate(180deg) saturate(120%)",
+              warm: "hue-rotate(-15deg) saturate(130%) brightness(105%)",
+	  };
+	  const base = [
+              `brightness(${sliders.brightness.value}%)`,
+              `contrast(${sliders.contrast.value}%)`,
+              `saturate(${sliders.saturate.value}%)`,
+              `blur(${sliders.blur.value}px)`,
+	  ].join(" ");
+	  return `${base} ${presets[filterPreset.value] ?? ""}`.trim();
+      };
+
+      const rebuildBaseFromImage = () => {
+	  if (!state.image) return;
+	  const img = state.image;
+	  const rotated = state.rotation % 180 !== 0;
+	  const w = rotated ? img.height : img.width;
+	  const h = rotated ? img.width : img.height;
+	  baseCanvas.width = w;
+	  baseCanvas.height = h;
+	  baseCtx.save();
+	  baseCtx.clearRect(0, 0, w, h);
+	  baseCtx.translate(w / 2, h / 2);
+	  baseCtx.rotate((state.rotation * Math.PI) / 180);
+	  baseCtx.scale(state.flipH ? -1 : 1, state.flipV ? -1 : 1);
+	  baseCtx.drawImage(img, -img.width / 2, -img.height / 2);
+	  baseCtx.restore();
+      };
+
+      const render = () => {
+	  if (!state.image) return;
+	  canvas.width = baseCanvas.width;
+	  canvas.height = baseCanvas.height;
+	  ctx.save();
+	  ctx.filter = buildFilter();
+	  ctx.drawImage(baseCanvas, 0, 0);
+	  ctx.restore();
+	  ctx.filter = "none";
+	  for (const t of state.texts) {
+              ctx.font = `bold ${t.size}px "Inter", system-ui, sans-serif`;
+              ctx.fillStyle = t.color;
+              ctx.strokeStyle = "rgba(0,0,0,0.5)";
+              ctx.lineWidth = Math.max(2, t.size / 16);
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.strokeText(t.text, t.x, t.y);
+              ctx.fillText(t.text, t.x, t.y);
+	  }
+	  renderStickers();
+	  renderOverlay();
+      };
+
+      const loadImage = (file) => {
+	  const reader = new FileReader();
+	  reader.onload = (e) => {
+              const img = new Image();
+              img.onload = () => {
+		  state.image = img;
+		  state.rotation = 0;
+		  state.flipH = false;
+		  state.flipV = false;
+		  state.texts = [];
+		  state.stickers = [];
+		  state.cropRect = null;
+		  stickerLayer.innerHTML = "";
+		  empty.style.display = "none";
+		  stage.style.display = "inline-block";
+		  rebuildBaseFromImage();
+		  render();
+		  showToast("画像を読み込みました");
+              };
+              img.onerror = () => showToast("画像の読み込みに失敗");
+              img.src = e.target.result;
+	  };
+	  reader.readAsDataURL(file);
+      };
+
+      fileInput.addEventListener("change", (e) => {
+	  const file = e.target.files?.[0];
+	  if (file) loadImage(file);
+      });
+
+      for (const [key, slider] of Object.entries(sliders)) {
+	  slider.addEventListener("input", () => {
+              const unit = key === "blur" ? "px" : "%";
+              valueLabels[key].textContent = slider.value + unit;
+              render();
+	  });
+      }
+      filterPreset.addEventListener("change", render);
+      mosaicSize.addEventListener("input", () => {
+	  mosaicVal.textContent = mosaicSize.value + "px";
+      });
+
+      const toolButtons = {
+	  none: document.getElementById("toolNone"),
+	  crop: document.getElementById("toolCrop"),
+	  mosaic: document.getElementById("toolMosaic"),
+      };
+      const cropPanel = document.getElementById("cropPanel");
+      const mosaicPanel = document.getElementById("mosaicPanel");
+
+      const setTool = (tool) => {
+	  state.tool = tool;
+	  stage.dataset.tool = tool;
+	  for (const [k, btn] of Object.entries(toolButtons)) {
+              btn.classList.toggle("active", k === tool);
+	  }
+	  cropPanel.style.display = tool === "crop" ? "" : "none";
+	  mosaicPanel.style.display = tool === "mosaic" ? "" : "none";
+	  if (tool !== "crop") {
+              state.cropRect = null;
+              renderOverlay();
+	  }
+	  selectSticker(null);
+      };
+
+      toolButtons.none.addEventListener("click", () => setTool("none"));
+      toolButtons.crop.addEventListener("click", () => { if (state.image) setTool("crop"); });
+      toolButtons.mosaic.addEventListener("click", () => { if (state.image) setTool("mosaic"); });
+
+      document.getElementById("rotateLeft").addEventListener("click", () => {
+	  if (!state.image) return;
+	  state.rotation = (state.rotation - 90 + 360) % 360;
+	  rebuildBaseFromImage(); render();
+      });
+      document.getElementById("rotateRight").addEventListener("click", () => {
+	  if (!state.image) return;
+	  state.rotation = (state.rotation + 90) % 360;
+	  rebuildBaseFromImage(); render();
+      });
+      document.getElementById("flipH").addEventListener("click", () => {
+	  if (!state.image) return;
+	  state.flipH = !state.flipH;
+	  rebuildBaseFromImage(); render();
+      });
+      document.getElementById("flipV").addEventListener("click", () => {
+	  if (!state.image) return;
+	  state.flipV = !state.flipV;
+	  rebuildBaseFromImage(); render();
+      });
+
+      document.getElementById("addText").addEventListener("click", () => {
+	  const text = document.getElementById("textInput").value.trim();
+	  if (!text || !state.image) return;
+	  state.texts.push({
+              text,
+              color: document.getElementById("textColor").value,
+              size: Number(document.getElementById("textSize").value),
+              x: canvas.width / 2,
+              y: canvas.height / 2,
+	  });
+	  render();
+	  showToast("テキストを追加");
+      });
+
+      const getCanvasPos = (e) => {
+	  const rect = canvas.getBoundingClientRect();
+	  const sx = canvas.width / rect.width;
+	  const sy = canvas.height / rect.height;
+	  return { x: (e.clientX - rect.left) * sx, y: (e.clientY - rect.top) * sy };
+      };
+
+      const renderOverlay = () => {
+	  overlay.innerHTML = "";
+	  if (state.tool === "crop" && state.cropRect && canvas.width > 0) {
+              const rect = canvas.getBoundingClientRect();
+              const sx = rect.width / canvas.width;
+              const sy = rect.height / canvas.height;
+              const r = state.cropRect;
+              const div = document.createElement("div");
+              div.className = "crop-rect";
+              div.style.left = r.x * sx + "px";
+              div.style.top = r.y * sy + "px";
+              div.style.width = r.w * sx + "px";
+              div.style.height = r.h * sy + "px";
+              overlay.appendChild(div);
+	  }
+      };
+
+      window.addEventListener("resize", () => {
+	  renderOverlay();
+	  renderStickers();
+      });
+
+      canvas.addEventListener("mousedown", (e) => {
+	  if (!state.image) return;
+
+	  if (state.tool === "crop") {
+              const start = getCanvasPos(e);
+              state.cropRect = { x: start.x, y: start.y, w: 0, h: 0 };
+              const onMove = (ev) => {
+		  const cur = getCanvasPos(ev);
+		  state.cropRect = {
+		      x: Math.min(start.x, cur.x),
+		      y: Math.min(start.y, cur.y),
+		      w: Math.abs(cur.x - start.x),
+		      h: Math.abs(cur.y - start.y),
+		  };
+		  renderOverlay();
+              };
+              const onUp = () => {
+		  window.removeEventListener("mousemove", onMove);
+		  window.removeEventListener("mouseup", onUp);
+		  if (state.cropRect.w < 4 || state.cropRect.h < 4) {
+		      state.cropRect = null;
+		      renderOverlay();
+		  }
+              };
+              window.addEventListener("mousemove", onMove);
+              window.addEventListener("mouseup", onUp);
+              return;
+	  }
+
+	  if (state.tool === "mosaic") {
+              applyMosaicAt(getCanvasPos(e));
+              const onMove = (ev) => applyMosaicAt(getCanvasPos(ev));
+              const onUp = () => {
+		  window.removeEventListener("mousemove", onMove);
+		  window.removeEventListener("mouseup", onUp);
+              };
+              window.addEventListener("mousemove", onMove);
+              window.addEventListener("mouseup", onUp);
+              return;
+	  }
+
+	  if (state.tool === "none" && state.texts.length > 0) {
+              const pos = getCanvasPos(e);
+              let target = null;
+              for (let i = state.texts.length - 1; i >= 0; i--) {
+		  const t = state.texts[i];
+		  if (Math.hypot(t.x - pos.x, t.y - pos.y) < t.size * 1.5) {
+		      target = t; break;
+		  }
+              }
+              if (!target) return;
+              const onMove = (ev) => {
+		  const p = getCanvasPos(ev);
+		  target.x = p.x; target.y = p.y;
+		  render();
+              };
+              const onUp = () => {
+		  window.removeEventListener("mousemove", onMove);
+		  window.removeEventListener("mouseup", onUp);
+              };
+              window.addEventListener("mousemove", onMove);
+              window.addEventListener("mouseup", onUp);
+	  }
+      });
+
+      const applyMosaicAt = ({ x, y }) => {
+	  const size = Number(mosaicSize.value);
+	  const radius = size * 2;
+	  const sx = Math.max(0, Math.floor(x - radius));
+	  const sy = Math.max(0, Math.floor(y - radius));
+	  const sw = Math.min(baseCanvas.width - sx, Math.floor(radius * 2));
+	  const sh = Math.min(baseCanvas.height - sy, Math.floor(radius * 2));
+	  if (sw <= 0 || sh <= 0) return;
+	  const small = document.createElement("canvas");
+	  const sCtx = small.getContext("2d");
+	  small.width = Math.max(1, Math.floor(sw / size));
+	  small.height = Math.max(1, Math.floor(sh / size));
+	  sCtx.imageSmoothingEnabled = false;
+	  sCtx.drawImage(baseCanvas, sx, sy, sw, sh, 0, 0, small.width, small.height);
+	  baseCtx.save();
+	  baseCtx.imageSmoothingEnabled = false;
+	  baseCtx.drawImage(small, 0, 0, small.width, small.height, sx, sy, sw, sh);
+	  baseCtx.restore();
+	  render();
+      };
+
+      document.getElementById("cropApply").addEventListener("click", () => {
+	  const r = state.cropRect;
+	  if (!r || r.w < 4 || r.h < 4) {
+              showToast("範囲を選択してください");
+              return;
+	  }
+	  const cropped = document.createElement("canvas");
+	  cropped.width = r.w;
+	  cropped.height = r.h;
+	  cropped.getContext("2d").drawImage(baseCanvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+	  const newImg = new Image();
+	  newImg.onload = () => {
+              state.image = newImg;
+              state.rotation = 0;
+              state.flipH = false;
+              state.flipV = false;
+              state.cropRect = null;
+              state.stickers = [];
+              state.texts = [];
+              stickerLayer.innerHTML = "";
+              rebuildBaseFromImage();
+              render();
+              setTool("none");
+              showToast("トリミング完了");
+	  };
+	  newImg.src = cropped.toDataURL("image/png");
+      });
+
+      document.getElementById("cropCancel").addEventListener("click", () => {
+	  state.cropRect = null;
+	  renderOverlay();
+	  setTool("none");
+      });
+
+      const selectSticker = (id) => {
+	  state.selectedSticker = id;
+	  renderStickers();
+      };
+
+      document.querySelectorAll(".sticker-btn").forEach((btn) => {
+	  btn.addEventListener("click", () => {
+              if (!state.image) {
+		  showToast("先に画像を読み込んでください");
+		  return;
+              }
+              const id = Date.now() + Math.random();
+              state.stickers.push({
+		  id,
+		  emoji: btn.dataset.emoji,
+		  x: canvas.width / 2,
+		  y: canvas.height / 2,
+		  size: Math.min(canvas.width, canvas.height) * 0.2,
+              });
+              selectSticker(id);
+              showToast("ステッカー追加 · ドラッグで移動・右下で拡大縮小");
+	  });
+      });
+
+      const renderStickers = () => {
+	  stickerLayer.innerHTML = "";
+	  if (canvas.width === 0) return;
+	  const rect = canvas.getBoundingClientRect();
+	  const sx = rect.width / canvas.width;
+	  const sy = rect.height / canvas.height;
+
+	  for (const s of state.stickers) {
+              const el = document.createElement("div");
+              el.className = "sticker" + (state.selectedSticker === s.id ? " selected" : "");
+              el.style.left = s.x * sx + "px";
+              el.style.top = s.y * sy + "px";
+              el.style.fontSize = s.size * sx + "px";
+              el.textContent = s.emoji;
+
+              el.addEventListener("mousedown", (e) => {
+		  e.stopPropagation();
+		  selectSticker(s.id);
+		  const startX = e.clientX;
+		  const startY = e.clientY;
+		  const origX = s.x;
+		  const origY = s.y;
+		  const onMove = (ev) => {
+		      s.x = origX + (ev.clientX - startX) / sx;
+		      s.y = origY + (ev.clientY - startY) / sy;
+		      renderStickers();
+		  };
+		  const onUp = () => {
+		      window.removeEventListener("mousemove", onMove);
+		      window.removeEventListener("mouseup", onUp);
+		  };
+		  window.addEventListener("mousemove", onMove);
+		  window.addEventListener("mouseup", onUp);
+              });
+
+              if (state.selectedSticker === s.id) {
+		  const resize = document.createElement("div");
+		  resize.className = "sticker-handle resize";
+		  resize.addEventListener("mousedown", (e) => {
+		      e.stopPropagation();
+		      const startX = e.clientX;
+		      const startSize = s.size;
+		      const onMove = (ev) => {
+			  const delta = (ev.clientX - startX) / sx;
+			  s.size = Math.max(20, startSize + delta);
+			  renderStickers();
+		      };
+		      const onUp = () => {
+			  window.removeEventListener("mousemove", onMove);
+			  window.removeEventListener("mouseup", onUp);
+		      };
+		      window.addEventListener("mousemove", onMove);
+		      window.addEventListener("mouseup", onUp);
+		  });
+		  el.appendChild(resize);
+
+		  const del = document.createElement("div");
+		  del.className = "sticker-handle delete";
+		  del.textContent = "×";
+		  del.addEventListener("mousedown", (e) => e.stopPropagation());
+		  del.addEventListener("click", (e) => {
+		      e.stopPropagation();
+		      state.stickers = state.stickers.filter((x) => x.id !== s.id);
+		      state.selectedSticker = null;
+		      renderStickers();
+		  });
+		  el.appendChild(del);
+              }
+
+              stickerLayer.appendChild(el);
+	  }
+      };
+
+      canvas.addEventListener("click", () => {
+	  if (state.tool === "none") selectSticker(null);
+      });
+
+      document.getElementById("reset").addEventListener("click", () => {
+	  if (!state.image) return;
+	  for (const [key, slider] of Object.entries(sliders)) {
+              slider.value = key === "blur" ? 0 : 100;
+              valueLabels[key].textContent = slider.value + (key === "blur" ? "px" : "%");
+	  }
+	  filterPreset.value = "none";
+	  state.rotation = 0;
+	  state.flipH = false;
+	  state.flipV = false;
+	  state.texts = [];
+	  state.stickers = [];
+	  state.selectedSticker = null;
+	  stickerLayer.innerHTML = "";
+	  rebuildBaseFromImage();
+	  render();
+	  showToast("リセットしました");
+      });
+
+      document.getElementById("download").addEventListener("click", () => {
+	  if (!state.image) return;
+	  // ステッカーを焼き込んだ最終画像を出力
+	  const out = document.createElement("canvas");
+	  out.width = canvas.width;
+	  out.height = canvas.height;
+	  const oCtx = out.getContext("2d");
+	  oCtx.drawImage(canvas, 0, 0);
+	  for (const s of state.stickers) {
+	      oCtx.font = `${s.size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+	      oCtx.textAlign = "center";
+	      oCtx.textBaseline = "middle";
+	      oCtx.fillText(s.emoji, s.x, s.y);
+	  }
+	  const link = document.createElement("a");
+	  link.download = `edited-${Date.now()}.png`;
+	  link.href = out.toDataURL("image/png");
+	  link.click();
+	  showToast("保存しました");
+      });
+    </script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+	  window.addEventListener("load", () => {
+	      navigator.serviceWorker.register("sw.js").catch((err) => {
+		  console.warn("SW登録失敗:", err);
+	      });
+	  });
+      }
+    </script>
+
+  </body>
+</html>
+
