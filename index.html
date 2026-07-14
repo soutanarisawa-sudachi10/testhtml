@@ -1,116 +1,224 @@
 <!DOCTYPE html>
 <html lang="ja">
   <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MY HOME</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <style>
-      body {
-	  background: #111;
-	  color: white;
-	  font-family: sans-serif;
-	  font-size: 32px;
 
-	  margin: 0;
-	  padding: 40px;
-      }
-      
-      h1 {
-	  text-align: center;
-	  font-size: 56px;
-      }
-      
-      .message {
-          background-color: #1e90ff;
-          color: white;
-
-          padding: 15px;
-          width: 100%;
-	  font-size: 60px;
-	  font-weight: bold;
-
-	  text-align: center;
-
-          border-radius: 10px;
+      *{
+	  margin:0;
+	  padding:0;
+	  box-sizing:border-box;
       }
 
-      .apps {
-	  display: flex;
-	  gap: 30px;
-	  
-	  justify-content: flex-start;
-	  flex-wrap: nowrap;
+      body{
 
-	  margin-top: 50px;
+	  margin:0;
+	  padding:40px;
+
+	  font-family:Arial,sans-serif;
+
+	  background:#f5f7fb;
+
+	  color:#222;
+
       }
 
-      .card {
-	  background: #1e1e1e;
+      .message{
 
-	  width: 300px;
-	  padding: 20px;
+	  width:90%;
+	  margin:auto;
 
-	  border-radius: 20px;
+	  padding:20px;
 
-	  transition: 0.3s;
+	  text-align:center;
+
+	  font-size:56px;
+
+	  font-weight:bold;
+
+	  color:white;
+
+	  background:linear-gradient(135deg,#4f8cff,#2563eb);
+
+	  border-radius:20px;
+
+	  box-shadow:0 10px 30px rgba(37,99,235,.25);
+
       }
 
-      .card:hover {
-	  transform: scale(1.05);
+      h1{
+
+	  text-align:center;
+
+	  margin:70px 0 35px;
+
+	  font-size:46px;
+
+	  letter-spacing:2px;
+
       }
 
-      .card h2 {
-	  margin-top: 15px;
+      .apps{
+
+	  display:flex;
+
+	  flex-wrap:wrap;
+
+	  justify-content:center;
+
+	  gap:30px;
+
       }
 
-      .button {
-	  display: inline-block;
+      .card{
 
-	  background: cyan;
-	  color: black;
+	  width:300px;
 
-	  padding: 10px 20px;
+	  padding:25px;
 
-	  border-radius: 10px;
+	  background:white;
 
-	  text-decoration: none;
+	  border-radius:20px;
 
-	  font-weight: bold;
+	  box-shadow:0 8px 25px rgba(0,0,0,.08);
+
+	  transition:.3s;
+
       }
 
-      .button:hover {
-	  background: white;
+      .card:hover{
+
+	  transform:translateY(-8px);
+
+	  box-shadow:0 18px 40px rgba(37,99,235,.18);
+
       }
+
+      .card h2{
+
+	  margin-bottom:18px;
+
+	  font-size:34px;
+
+      }
+
+      .card p{
+
+	  color:#555;
+
+	  line-height:1.6;
+
+	  min-height:70px;
+
+      }
+
+      .button{
+
+	  display:inline-block;
+
+	  margin-top:10px;
+
+	  padding:12px 24px;
+
+	  border-radius:10px;
+
+	  background:#2563eb;
+
+	  color:white;
+
+	  text-decoration:none;
+
+	  font-weight:bold;
+
+	  transition:.3s;
+
+      }
+
+      .button:hover{
+
+	  background:#1d4ed8;
+
+      }
+
+      .single{
+
+	  display:flex;
+
+	  justify-content:center;
+
+	  margin-top:20px;
+
+      }
+
+      footer{
+
+	  margin-top:80px;
+
+	  text-align:center;
+
+	  color:#bdbdbd;
+
+	  font-size:20px;
+
+      }
+
+      @media(max-width:768px){
+
+	  .message{
+
+	      font-size:40px;
+
+	  }
+
+	  h1{
+
+	      font-size:36px;
+
+	  }
+
+	  .card{
+
+	      width:100%;
+
+	  }
+
+      }
+
     </style>
 
-    <title>My homepage</title>
   </head>
 
   <body>
+
     <div class="message">
       MY HOME
     </div>
-    
-    <p>
-      <h1> Web Applications </h1>
-    </p>
+
+    <h1>💻 Web Applications</h1>
 
     <div class="apps">
+
       <div class="card">
-
-	<h2> todo-list </h2>
-
+	<h2>📝 Todo List</h2>
 	<p>
 	  やることリスト
 	</p>
-
 	<a class="button" href="https://todo-list-zrf6.onrender.com">
 	  OPEN
 	</a>
       </div>
 
       <div class="card">
-	<h2>画像編集</h2>
+	<h2>🖼️ 画像編集</h2>
 	<p>
-	  画像編集ができます
+	  ブラウザで画像編集ができます
 	</p>
 	<a class="button" href="./gazoueditor/image-editor.html">
 	  OPEN
@@ -118,9 +226,9 @@
       </div>
 
       <div class="card">
-	<h2>ファイル変換</h2>
+	<h2>🔄 ファイル変換</h2>
 	<p>
-	  png,jpg,webpに変換
+	  png・jpg・webpへ変換できます
 	</p>
 	<a class="button" href="./henkan.html">
 	  OPEN
@@ -128,9 +236,9 @@
       </div>
 
       <div class="card">
-	<h2>画像共有</h2>
+	<h2>☁️ 画像共有</h2>
 	<p>
-	  共有できる
+	  画像を共有できます
 	</p>
 	<a class="button" href="https://image-share-cdo9.onrender.com">
 	  OPEN
@@ -138,48 +246,81 @@
       </div>
 
       <div class="card">
-	<h2>画像解析</h2>
+	<h2>🤖 画像解析</h2>
 	<p>
-	  まだ利用できません
+	  現在開発中です
 	</p>
-	<a class="button" href="">
+	<a class="button" href="#">
 	  OPEN
 	</a>
       </div>
+
     </div>
 
-    <h1> MY GAME </h1>
-    <p>
+    <h1>🎮 MY GAME</h1>
+
+    <div class="single">
+
       <div class="card">
-	<h2> 2Dマリオ風 </h2>
+
+	<h2>🎮 2Dマリオ風</h2>
+
 	<p>
-	  移動WASD ジャンプSPACE
+	  移動：WASD<br>
+	  ジャンプ：SPACE
 	</p>
+
 	<a class="button" href="./2Dmario/index.html">
 	  OPEN
 	</a>
+
       </div>
-    </p>
-    
-    
-    <h1> GitHub(Git)マニュアル </h1>
-    
-    <p>
+
+    </div>
+
+    <h1>📚 GitHub(Git)マニュアル</h1>
+
+    <div class="single">
+
       <div class="card">
-	<h2> GitHubマニュアル公開編 </h2>
+
+	<h2>📖 GitHub公開編</h2>
+
+	<p>
+	  Git/GitHubの公開方法をまとめています。
+	</p>
+
 	<a class="button" href="./gitm.html">
 	  OPEN
 	</a>
-      </div>
-    </p>
-    
-    <h1> 現在開発中のもの </h1>
-    <p>
-      ・動画編集エディタ <br>
-    </p>
 
-    <a href=""></a>
-    
-    
+      </div>
+
+    </div>
+
+    <h1>🚀 現在開発中</h1>
+
+    <div class="single">
+
+      <div class="card">
+
+	<h2>🎬 動画編集エディタ</h2>
+
+	<p>
+
+	  ブラウザ上で動画編集ができるWebアプリを開発中です。
+
+	</p>
+
+      </div>
+
+    </div>
+
+    <footer>
+
+      © 2026 MY HOME
+
+    </footer>
+
   </body>
 </html>
